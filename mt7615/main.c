@@ -89,9 +89,12 @@ static int mt7615_add_interface(struct ieee80211_hw *hw,
 	}
 	mvif->omac_idx = idx;
 
-	/* TODO: DBDC support. Use band 0 for now */
-	mvif->band_idx = 0;
-	mvif->wmm_idx = mvif->idx % MT7615_MAX_WMM_SETS;
+	mvif->band_idx = ext_phy;
+	if (mt7615_ext_phy(dev))
+		mvif->wmm_idx = ext_phy * (MT7615_MAX_WMM_SETS / 2) +
+				mvif->idx % (MT7615_MAX_WMM_SETS / 2);
+	else
+		mvif->wmm_idx = mvif->idx % MT7615_MAX_WMM_SETS;
 
 	ret = mt7615_mcu_set_dev_info(dev, vif, 1);
 	if (ret)
@@ -99,6 +102,10 @@ static int mt7615_add_interface(struct ieee80211_hw *hw,
 
 	dev->vif_mask |= BIT(mvif->idx);
 	dev->omac_mask |= BIT(mvif->omac_idx);
+	phy->omac_mask |= BIT(mvif->omac_idx);
+
+	mt7615_mcu_set_dbdc(dev);
+
 	idx = MT7615_WTBL_RESERVED - mvif->idx;
 
 	INIT_LIST_HEAD(&mvif->sta.poll_list);
@@ -123,7 +130,8 @@ static void mt7615_remove_interface(struct ieee80211_hw *hw,
 {
 	struct mt7615_vif *mvif = (struct mt7615_vif *)vif->drv_priv;
 	struct mt7615_sta *msta = &mvif->sta;
-	struct mt7615_dev *dev = hw->priv;
+	struct mt7615_dev *dev = mt7615_hw_dev(hw);
+	struct mt7615_phy *phy = mt7615_hw_phy(hw);
 	int idx = msta->wcid.idx;
 
 	/* TODO: disable beacon for the bss */
@@ -136,6 +144,7 @@ static void mt7615_remove_interface(struct ieee80211_hw *hw,
 	mutex_lock(&dev->mt76.mutex);
 	dev->vif_mask &= ~BIT(mvif->idx);
 	dev->omac_mask &= ~BIT(mvif->omac_idx);
+	phy->omac_mask &= ~BIT(mvif->omac_idx);
 	mutex_unlock(&dev->mt76.mutex);
 
 	spin_lock_bh(&dev->sta_poll_lock);

@@ -79,6 +79,28 @@ struct mt7615_vif {
 	struct mt7615_sta sta;
 };
 
+struct mt7615_phy {
+	struct mt76_phy *mt76;
+	struct mt7615_dev *dev;
+
+	u32 rxfilter;
+	u32 omac_mask;
+
+	unsigned long last_cca_adj;
+	int false_cca_ofdm, false_cca_cck;
+	s8 ofdm_sensitivity;
+	s8 cck_sensitivity;
+
+	u16 chainmask;
+
+	u8 chfreq_seq;
+	u8 rdd_state;
+	int dfs_state;
+
+	__le32 rx_ampdu_ts;
+	u32 ampdu_ref;
+};
+
 struct mt7615_dev {
 	struct mt76_dev mt76; /* must be first */
 	u32 vif_mask;
@@ -253,6 +275,7 @@ int mt7615_mac_wtbl_set_key(struct mt7615_dev *dev, struct mt76_wcid *wcid,
 			    struct ieee80211_key_conf *key,
 			    enum set_key_cmd cmd);
 
+int mt7615_mcu_set_dbdc(struct mt7615_dev *dev);
 int mt7615_mcu_set_eeprom(struct mt7615_dev *dev);
 int mt7615_mcu_init_mac(struct mt7615_dev *dev);
 int mt7615_mcu_set_rts_thresh(struct mt7615_dev *dev, u32 val);
