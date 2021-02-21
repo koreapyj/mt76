@@ -396,8 +396,8 @@ int mt7615_register_device(struct mt7615_dev *dev)
 	struct ieee80211_hw *hw = mt76_hw(dev);
 	int ret;
 
-	dev->phy.dev = dev;
-	dev->phy.mt76 = &dev->mt76.phy;
+	dev->mt76.phy.dev = dev;
+	dev->mt76.phy.mt76 = &dev->mt76.phy;
 	dev->mt76.phy.priv = &dev->phy;
 	INIT_DELAYED_WORK(&dev->mt76.mac_work, mt7615_mac_work);
 	INIT_LIST_HEAD(&dev->sta_poll_list);
