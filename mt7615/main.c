@@ -72,6 +72,7 @@ static int mt7615_add_interface(struct ieee80211_hw *hw,
 	struct mt7615_vif *mvif = (struct mt7615_vif *)vif->drv_priv;
 	struct mt7615_dev *dev = hw->priv;
 	struct mt76_txq *mtxq;
+	bool ext_phy = phy != &dev->phy;
 	int idx, ret = 0;
 
 	mutex_lock(&dev->mt76.mutex);
